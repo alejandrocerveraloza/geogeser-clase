@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoGuessr Multijugador - 100% Gratis</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel='stylesheet' href='https://unpkg.com/mapillary-js@4.1.1/dist/mapillary.css' />
+</head>
+<body>
+    <!-- Pantalla de inicio -->
+    <div id="startScreen" class="screen active">
+        <div class="container">
+            <h1>🌍 GeoGuessr Multijugador</h1>
+            <p>100% Gratis - Sin API Keys - Sin límites</p>
+            
+            <div class="menu">
+                <button id="createRoomBtn" class="btn btn-primary">Crear Sala</button>
+                <button id="joinRoomBtn" class="btn btn-secondary">Unirse a Sala</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de crear sala -->
+    <div id="createRoomScreen" class="screen">
+        <div class="container">
+            <h2>Crear Nueva Sala</h2>
+            
+            <div class="form-group">
+                <label>Filtrar ubicaciones por:</label>
+                <select id="locationFilter">
+                    <option value="world">Todo el mundo</option>
+                    <option value="europe">Europa</option>
+                    <option value="asia">Asia</option>
+                    <option value="americas">América</option>
+                    <option value="africa">África</option>
+                    <option value="oceania">Oceanía</option>
+                    <option value="spain">España</option>
+                    <option value="usa">Estados Unidos</option>
+                    <option value="japan">Japón</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Número de rondas:</label>
+                <select id="numRounds">
+                    <option value="3">3 rondas</option>
+                    <option value="5" selected>5 rondas</option>
+                    <option value="10">10 rondas</option>
+                </select>
+            </div>
+
+            <div id="roomCodeDisplay" class="room-code" style="display: none;">
+                <p>Tu código de sala es:</p>
+                <div class="code-box" id="roomCode">----</div>
+                <p class="info-text">Esperando a que se una otro jugador...</p>
+            </div>
+
+            <div class="button-group">
+                <button id="startCreatingBtn" class="btn btn-primary">Generar Código</button>
+                <button id="cancelCreateBtn" class="btn btn-secondary">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de unirse a sala -->
+    <div id="joinRoomScreen" class="screen">
+        <div class="container">
+            <h2>Unirse a Sala</h2>
+            
+            <div class="form-group">
+                <label>Código de sala:</label>
+                <input type="text" id="roomCodeInput" placeholder="Ingresa el código de 4 dígitos" maxlength="4">
+            </div>
+
+            <div id="connectionStatus" class="status-message"></div>
+
+            <div class="button-group">
+                <button id="connectBtn" class="btn btn-primary">Conectar</button>
+                <button id="cancelJoinBtn" class="btn btn-secondary">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de juego -->
+    <div id="gameScreen" class="screen">
+        <!-- Panel superior con información -->
+        <div class="game-header">
+            <div class="game-info">
+                <span>Ronda: <span id="currentRound">1</span>/<span id="totalRounds">5</span></span>
+                <span class="separator">|</span>
+                <span>Ubicación: <span id="locationInfo">Cargando...</span></span>
+            </div>
+            <div class="scores">
+                <div class="score-item">
+                    <span class="player-name">Tú: </span>
+                    <span id="myScore">0</span>
+                </div>
+                <div class="score-item">
+                    <span class="player-name">Rival: </span>
+                    <span id="opponentScore">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visor de imágenes panorámicas -->
+        <div id="streetView"></div>
+
+        <!-- Botón de adivinar -->
+        <div class="game-controls">
+            <button id="guessBtn" class="btn btn-guess">Siguiente Ubicación →</button>
+            <p class="hint">Observa bien la ubicación antes de continuar</p>
+        </div>
+    </div>
+
+    <!-- Pantalla de resultados finales -->
+    <div id="resultsScreen" class="screen">
+        <div class="container">
+            <h2>🏆 Resultados Finales</h2>
+            
+            <div class="final-scores">
+                <div class="final-score-card">
+                    <h3>Tú</h3>
+                    <div class="big-score" id="finalMyScore">0</div>
+                </div>
+                <div class="vs">VS</div>
+                <div class="final-score-card">
+                    <h3>Rival</h3>
+                    <div class="big-score" id="finalOpponentScore">0</div>
+                </div>
+            </div>
+
+            <div id="winnerMessage" class="winner-message"></div>
+
+            <div class="button-group">
+                <button id="playAgainBtn" class="btn btn-primary">Jugar de Nuevo</button>
+                <button id="exitBtn" class="btn btn-secondary">Salir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src='https://unpkg.com/mapillary-js@4.1.1/dist/mapillary.js'></script>
+    <script src="game-free.js"></script>
+</body>
+</html>
