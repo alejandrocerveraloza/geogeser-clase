@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GeoGuessr Multijugador - 100% Gratis</title>
     <link rel="stylesheet" href="style.css">
-    <link rel='stylesheet' href='https://unpkg.com/mapillary-js@4.1.1/dist/mapillary.css' />
 </head>
 <body>
     <!-- Pantalla de inicio -->
     <div id="startScreen" class="screen active">
         <div class="container">
             <h1>🌍 GeoGuessr Multijugador</h1>
-            <p>100% Gratis - Sin API Keys - Sin límites</p>
+            <p>100% Gratis - Juega con tus amigos</p>
             
             <div class="menu">
                 <button id="createRoomBtn" class="btn btn-primary">Crear Sala</button>
@@ -26,21 +25,6 @@
         <div class="container">
             <h2>Crear Nueva Sala</h2>
             
-            <div class="form-group">
-                <label>Filtrar ubicaciones por:</label>
-                <select id="locationFilter">
-                    <option value="world">Todo el mundo</option>
-                    <option value="europe">Europa</option>
-                    <option value="asia">Asia</option>
-                    <option value="americas">América</option>
-                    <option value="africa">África</option>
-                    <option value="oceania">Oceanía</option>
-                    <option value="spain">España</option>
-                    <option value="usa">Estados Unidos</option>
-                    <option value="japan">Japón</option>
-                </select>
-            </div>
-
             <div class="form-group">
                 <label>Número de rondas:</label>
                 <select id="numRounds">
@@ -70,7 +54,7 @@
             
             <div class="form-group">
                 <label>Código de sala:</label>
-                <input type="text" id="roomCodeInput" placeholder="Ingresa el código de 4 dígitos" maxlength="4">
+                <input type="text" id="roomCodeInput" placeholder="Código de 4 dígitos" maxlength="4">
             </div>
 
             <div id="connectionStatus" class="status-message"></div>
@@ -84,12 +68,10 @@
 
     <!-- Pantalla de juego -->
     <div id="gameScreen" class="screen">
-        <!-- Panel superior con información -->
+        <!-- Panel superior -->
         <div class="game-header">
             <div class="game-info">
                 <span>Ronda: <span id="currentRound">1</span>/<span id="totalRounds">5</span></span>
-                <span class="separator">|</span>
-                <span>Ubicación: <span id="locationInfo">Cargando...</span></span>
             </div>
             <div class="scores">
                 <div class="score-item">
@@ -103,17 +85,22 @@
             </div>
         </div>
 
-        <!-- Visor de imágenes panorámicas -->
-        <div id="streetView"></div>
+        <!-- Imagen de ubicación -->
+        <div id="streetView">
+            <img id="locationImage" src="" alt="Ubicación misteriosa">
+            <div class="location-overlay">
+                <h3>¿Dónde está esto?</h3>
+                <p id="locationHint">Observa los detalles...</p>
+            </div>
+        </div>
 
-        <!-- Botón de adivinar -->
+        <!-- Botón de siguiente -->
         <div class="game-controls">
             <button id="guessBtn" class="btn btn-guess">Siguiente Ubicación →</button>
-            <p class="hint">Observa bien la ubicación antes de continuar</p>
         </div>
     </div>
 
-    <!-- Pantalla de resultados finales -->
+    <!-- Pantalla de resultados -->
     <div id="resultsScreen" class="screen">
         <div class="container">
             <h2>🏆 Resultados Finales</h2>
@@ -141,7 +128,6 @@
 
     <!-- Scripts -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script src='https://unpkg.com/mapillary-js@4.1.1/dist/mapillary.js'></script>
-    <script src="game-free.js"></script>
+    <script src="game-simple.js"></script>
 </body>
 </html>
