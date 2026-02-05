@@ -1,76 +1,58 @@
 // ==========================================
-// VERSIÓN ULTRA SIMPLE - FUNCIONA 100%
+// VERSIÓN 100% GRATIS - USA MAPILLARY
 // ==========================================
 
 let peer = null;
 let connection = null;
 let isHost = false;
 let roomCode = null;
-let gameConfig = { numRounds: 5 };
+let gameConfig = {
+    locationFilter: 'world',
+    numRounds: 5
+};
+
 let gameState = {
     currentRound: 1,
     myScore: 0,
-    opponentScore: 0
+    opponentScore: 0,
+    currentLocation: null
 };
 
-// Imágenes de ubicaciones (usando URLs públicas de Unsplash)
-const locations = [
-    { url: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=800', hint: 'Ciudad europea' },
-    { url: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800', hint: 'Edificio famoso' },
-    { url: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800', hint: 'Ciudad nocturna' },
-    { url: 'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800', hint: 'Playa tropical' },
-    { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800', hint: 'Montañas' },
-    { url: 'https://images.unsplash.com/photo-1514923995763-768e52f5af87?w=800', hint: 'Metrópolis asiática' },
-    { url: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800', hint: 'Playa y montaña' },
-    { url: 'https://images.unsplash.com/photo-1518391846015-55a9cc003b25?w=800', hint: 'Ciudad costera' },
-    { url: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800', hint: 'Paisaje natural' },
-    { url: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800', hint: 'Lago y montañas' }
-];
-
-console.log('✅ Aplicación iniciada correctamente');
+let viewer = null; // Visor de Mapillary
 
 // ==========================================
 // INICIALIZACIÓN
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('✅ DOM cargado');
     setupEventListeners();
+    console.log('Aplicación iniciada - Versión 100% GRATIS');
 });
 
-function setupEventListeners() {
-    console.log('✅ Configurando botones...');
-    
-    const buttons = {
-        createRoomBtn: showCreateRoomScreen,
-        joinRoomBtn: showJoinRoomScreen,
-        startCreatingBtn: createRoom,
-        cancelCreateBtn: showStartScreen,
-        connectBtn: joinRoom,
-        cancelJoinBtn: showStartScreen,
-        guessBtn: nextRound,
-        playAgainBtn: playAgain,
-        exitBtn: exitGame
-    };
+// ==========================================
+// EVENT LISTENERS
+// ==========================================
 
-    for (let [id, handler] of Object.entries(buttons)) {
-        const element = document.getElementById(id);
-        if (element) {
-            element.addEventListener('click', handler);
-            console.log(`✅ Botón ${id} conectado`);
-        } else {
-            console.error(`❌ No se encontró el botón: ${id}`);
-        }
-    }
+function setupEventListeners() {
+    document.getElementById('createRoomBtn').addEventListener('click', showCreateRoomScreen);
+    document.getElementById('joinRoomBtn').addEventListener('click', showJoinRoomScreen);
+    document.getElementById('startCreatingBtn').addEventListener('click', createRoom);
+    document.getElementById('cancelCreateBtn').addEventListener('click', showStartScreen);
+    document.getElementById('connectBtn').addEventListener('click', joinRoom);
+    document.getElementById('cancelJoinBtn').addEventListener('click', showStartScreen);
+    document.getElementById('guessBtn').addEventListener('click', nextRound);
+    document.getElementById('playAgainBtn').addEventListener('click', playAgain);
+    document.getElementById('exitBtn').addEventListener('click', exitGame);
 }
 
 // ==========================================
-// NAVEGACIÓN
+// NAVEGACIÓN ENTRE PANTALLAS
 // ==========================================
 
 function showScreen(screenId) {
-    console.log(`Mostrando pantalla: ${screenId}`);
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.remove('active');
+    });
     document.getElementById(screenId).classList.add('active');
 }
 
@@ -80,12 +62,10 @@ function showStartScreen() {
 }
 
 function showCreateRoomScreen() {
-    console.log('📱 Abriendo pantalla de crear sala');
     showScreen('createRoomScreen');
 }
 
 function showJoinRoomScreen() {
-    console.log('📱 Abriendo pantalla de unirse');
     showScreen('joinRoomScreen');
 }
 
@@ -98,54 +78,54 @@ function showResultsScreen() {
 }
 
 // ==========================================
-// CREAR SALA
+// CREACIÓN DE SALA (HOST)
 // ==========================================
 
 function createRoom() {
-    console.log('🎮 Creando sala...');
-    
     isHost = true;
+    gameConfig.locationFilter = document.getElementById('locationFilter').value;
     gameConfig.numRounds = parseInt(document.getElementById('numRounds').value);
     roomCode = Math.floor(1000 + Math.random() * 9000).toString();
     
-    console.log(`📝 Código generado: ${roomCode}`);
-    
-    // Crear peer
-    peer = new Peer('room-' + roomCode);
+    peer = new Peer('room-' + roomCode, {
+        config: {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        }
+    });
 
     peer.on('open', (id) => {
-        console.log('✅ Sala creada con ID:', id);
+        console.log('Sala creada:', id);
         document.getElementById('roomCode').textContent = roomCode;
         document.getElementById('roomCodeDisplay').style.display = 'block';
         document.getElementById('startCreatingBtn').disabled = true;
     });
 
     peer.on('connection', (conn) => {
-        console.log('✅ ¡Jugador conectado!');
         connection = conn;
+        console.log('Jugador conectado');
         setupConnection();
         
         setTimeout(() => {
-            console.log('📤 Enviando configuración del juego');
             sendMessage({ type: 'gameConfig', config: gameConfig });
             setTimeout(() => startGame(), 1000);
         }, 500);
     });
 
     peer.on('error', (err) => {
-        console.error('❌ Error al crear sala:', err);
-        alert('Error al crear sala. Intenta de nuevo.');
+        console.error('Error:', err);
+        alert('Error al crear la sala. Intenta de nuevo.');
     });
 }
 
 // ==========================================
-// UNIRSE A SALA
+// UNIRSE A SALA (GUEST)
 // ==========================================
 
 function joinRoom() {
     const inputCode = document.getElementById('roomCodeInput').value.trim();
-    
-    console.log(`🔗 Intentando unirse a sala: ${inputCode}`);
     
     if (inputCode.length !== 4) {
         showStatus('Ingresa un código de 4 dígitos', 'error');
@@ -155,23 +135,30 @@ function joinRoom() {
     isHost = false;
     roomCode = inputCode;
 
-    peer = new Peer();
+    peer = new Peer({
+        config: {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        }
+    });
 
     peer.on('open', (id) => {
-        console.log('✅ Peer creado, ID:', id);
+        console.log('Mi ID:', id);
         showStatus('Conectando...', 'info');
         
-        connection = peer.connect('room-' + roomCode);
+        connection = peer.connect('room-' + roomCode, { reliable: true });
         setupConnection();
 
         connection.on('open', () => {
-            console.log('✅ ¡Conectado a la sala!');
+            console.log('Conectado a la sala');
             showStatus('¡Conectado! Esperando inicio...', 'success');
         });
     });
 
     peer.on('error', (err) => {
-        console.error('❌ Error al conectar:', err);
+        console.error('Error:', err);
         showStatus('No se pudo conectar. Verifica el código.', 'error');
     });
 }
@@ -180,42 +167,39 @@ function showStatus(message, type) {
     const statusDiv = document.getElementById('connectionStatus');
     statusDiv.textContent = message;
     statusDiv.className = 'status-message ' + type;
-    console.log(`📢 Estado: ${message}`);
 }
 
 // ==========================================
-// CONEXIÓN
+// CONFIGURACIÓN DE LA CONEXIÓN
 // ==========================================
 
 function setupConnection() {
     if (!connection) return;
 
     connection.on('data', (data) => {
-        console.log('📥 Mensaje recibido:', data);
         handleMessage(data);
     });
 
     connection.on('close', () => {
-        console.log('❌ Conexión cerrada');
+        console.log('Conexión cerrada');
         alert('El otro jugador se desconectó');
         showStartScreen();
     });
 
     connection.on('error', (err) => {
-        console.error('❌ Error de conexión:', err);
+        console.error('Error de conexión:', err);
     });
 }
 
 function sendMessage(message) {
     if (connection && connection.open) {
-        console.log('📤 Enviando mensaje:', message);
         connection.send(message);
-    } else {
-        console.error('❌ No se puede enviar mensaje, conexión no abierta');
     }
 }
 
 function handleMessage(data) {
+    console.log('Mensaje recibido:', data);
+
     switch(data.type) {
         case 'gameConfig':
             gameConfig = data.config;
@@ -224,7 +208,7 @@ function handleMessage(data) {
             startGame();
             break;
         case 'newLocation':
-            loadLocation(data.locationIndex);
+            loadLocation(data.location);
             break;
         case 'nextRound':
             gameState.opponentScore += data.score;
@@ -239,11 +223,11 @@ function handleMessage(data) {
 }
 
 // ==========================================
-// JUEGO
+// LÓGICA DEL JUEGO
 // ==========================================
 
 function startGame() {
-    console.log('🎮 ¡Iniciando juego!');
+    console.log('Iniciando juego...');
     
     gameState.currentRound = 1;
     gameState.myScore = 0;
@@ -253,36 +237,107 @@ function startGame() {
     updateScoreDisplay();
     showGameScreen();
     
+    initializeMapillary();
+    
     if (isHost) {
         generateNewLocation();
     }
 }
 
-function generateNewLocation() {
-    const randomIndex = Math.floor(Math.random() * locations.length);
-    console.log(`🌍 Nueva ubicación: índice ${randomIndex}`);
-    
-    loadLocation(randomIndex);
-    sendMessage({ type: 'newLocation', locationIndex: randomIndex });
+function initializeMapillary() {
+    const container = document.getElementById('streetView');
+
+    viewer = new Mapillary.Viewer({
+        container: container,
+        accessToken: 'MLY|4142433049200173|72206abe5035850d6743b23a49c41333',
+        component: {
+            cover: false,
+            sequence: false
+        }
+    });
 }
 
-function loadLocation(index) {
-    const location = locations[index];
-    console.log('📍 Cargando ubicación:', location.hint);
+
+function generateNewLocation() {
+    console.log('Generando ubicación...');
     
-    document.getElementById('locationImage').src = location.url;
-    document.getElementById('locationHint').textContent = location.hint;
+    const coords = getRandomCoordinates();
+    
+    // Usar API de Mapillary para encontrar imágenes cercanas
+    const url = `https://graph.mapillary.com/images?access_token=MLY|4142433049200173|72206abe5035850d6743b23a49c41333&fields=id,computed_geometry&bbox=${coords.lng-0.1},${coords.lat-0.1},${coords.lng+0.1},${coords.lat+0.1}&limit=10`;
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.data && data.data.length > 0) {
+                // Elegir imagen aleatoria
+                const randomImage = data.data[Math.floor(Math.random() * data.data.length)];
+                
+                const location = {
+                    imageId: randomImage.id,
+                    lat: randomImage.computed_geometry.coordinates[1],
+                    lng: randomImage.computed_geometry.coordinates[0]
+                };
+                
+                console.log('Ubicación encontrada:', location);
+                loadLocation(location);
+                sendMessage({ type: 'newLocation', location: location });
+            } else {
+                console.log('No se encontró ubicación, reintentando...');
+                setTimeout(() => generateNewLocation(), 500);
+            }
+        })
+        .catch(err => {
+            console.error('Error al buscar ubicación:', err);
+            setTimeout(() => generateNewLocation(), 1000);
+        });
+}
+
+function getRandomCoordinates() {
+    const filters = {
+        world: { latMin: -60, latMax: 70, lngMin: -180, lngMax: 180 },
+        europe: { latMin: 36, latMax: 71, lngMin: -10, lngMax: 40 },
+        asia: { latMin: 10, latMax: 55, lngMin: 60, lngMax: 150 },
+        americas: { latMin: -55, latMax: 70, lngMin: -170, lngMax: -30 },
+        africa: { latMin: -35, latMax: 37, lngMin: -17, lngMax: 52 },
+        oceania: { latMin: -47, latMax: -10, lngMin: 110, lngMax: 180 },
+        spain: { latMin: 36, latMax: 43.8, lngMin: -9.3, lngMax: 4.3 },
+        usa: { latMin: 25, latMax: 49, lngMin: -125, lngMax: -66 },
+        japan: { latMin: 30, latMax: 46, lngMin: 129, lngMax: 146 }
+    };
+
+    const filter = filters[gameConfig.locationFilter] || filters.world;
+    const lat = filter.latMin + Math.random() * (filter.latMax - filter.latMin);
+    const lng = filter.lngMin + Math.random() * (filter.lngMax - filter.lngMin);
+    
+    return { lat, lng };
+}
+
+function loadLocation(location) {
+    gameState.currentLocation = location;
+    
+    // Mover el visor a la nueva imagen
+    if (viewer && location.imageId) {
+        viewer.moveTo(location.imageId).catch(err => {
+            console.error('Error al cargar imagen:', err);
+        });
+    }
+    
+    document.getElementById('locationInfo').textContent = 
+        capitalizeFirst(gameConfig.locationFilter);
     document.getElementById('currentRound').textContent = gameState.currentRound;
 }
 
 function nextRound() {
-    console.log('➡️ Siguiente ronda');
-    
     const roundScore = Math.floor(500 + Math.random() * 500);
     gameState.myScore += roundScore;
     updateScoreDisplay();
     
-    sendMessage({ type: 'nextRound', score: roundScore });
+    sendMessage({
+        type: 'nextRound',
+        score: roundScore
+    });
+    
     proceedToNextRound();
 }
 
@@ -290,8 +345,10 @@ function proceedToNextRound() {
     gameState.currentRound++;
     
     if (gameState.currentRound > gameConfig.numRounds) {
-        console.log('🏁 Juego terminado');
-        sendMessage({ type: 'gameOver', finalScore: gameState.myScore });
+        sendMessage({
+            type: 'gameOver',
+            finalScore: gameState.myScore
+        });
         showFinalResults();
     } else {
         if (isHost) {
@@ -306,12 +363,10 @@ function updateScoreDisplay() {
 }
 
 // ==========================================
-// RESULTADOS
+// RESULTADOS FINALES
 // ==========================================
 
 function showFinalResults() {
-    console.log('🏆 Mostrando resultados finales');
-    
     document.getElementById('finalMyScore').textContent = gameState.myScore;
     document.getElementById('finalOpponentScore').textContent = gameState.opponentScore;
     
@@ -332,7 +387,7 @@ function showFinalResults() {
 }
 
 // ==========================================
-// FIN DE JUEGO
+// ACCIONES DE FIN DE JUEGO
 // ==========================================
 
 function playAgain() {
@@ -358,12 +413,21 @@ function cleanupConnection() {
         peer.destroy();
         peer = null;
     }
+    if (viewer) {
+        viewer = null;
+    }
     roomCode = null;
     isHost = false;
+}
+
+// ==========================================
+// UTILIDADES
+// ==========================================
+
+function capitalizeFirst(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 window.addEventListener('beforeunload', () => {
     cleanupConnection();
 });
-
-console.log('✅ Script cargado completamente');
