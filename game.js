@@ -87,7 +87,7 @@ function createRoom() {
     gameConfig.numRounds = parseInt(document.getElementById('numRounds').value);
     roomCode = Math.floor(1000 + Math.random() * 9000).toString();
     
-    peer = new Peer('room-' + roomCode, {
+    peer = new Peer({
         config: {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
@@ -431,3 +431,4 @@ function capitalizeFirst(str) {
 window.addEventListener('beforeunload', () => {
     cleanupConnection();
 });
+
