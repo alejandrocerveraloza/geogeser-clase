@@ -130,10 +130,11 @@ function createRoom() {
 function joinRoom() {
     const inputCode = document.getElementById('roomCodeInput').value.trim();
     
-    if (!inputCode) {
-        showStatus('Ingresa un código de 4 dígitos', 'error');
-        return;
-    }
+   if (!inputCode) {
+    showStatus('Pega el ID de la sala', 'error');
+    return;
+}
+
 
     isHost = false;
     roomCode = inputCode;
@@ -434,6 +435,7 @@ function capitalizeFirst(str) {
 window.addEventListener('beforeunload', () => {
     cleanupConnection();
 });
+
 
 
 
