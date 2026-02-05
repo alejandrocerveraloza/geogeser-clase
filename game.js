@@ -98,7 +98,7 @@ function createRoom() {
 
     peer.on('open', (id) => {
         console.log('Sala creada:', id);
-        document.getElementById('roomCode').textContent = roomCode;
+        document.getElementById('roomCode').textContent = id;
         document.getElementById('roomCodeDisplay').style.display = 'block';
         document.getElementById('startCreatingBtn').disabled = true;
     });
@@ -127,7 +127,7 @@ function createRoom() {
 function joinRoom() {
     const inputCode = document.getElementById('roomCodeInput').value.trim();
     
-    if (inputCode.length !== 4) {
+    if (!inputCode) {
         showStatus('Ingresa un código de 4 dígitos', 'error');
         return;
     }
@@ -148,7 +148,7 @@ function joinRoom() {
         console.log('Mi ID:', id);
         showStatus('Conectando...', 'info');
         
-        connection = peer.connect('room-' + roomCode, { reliable: true });
+        connection = peer.connect(roomCode, { reliable: true });
         setupConnection();
 
         connection.on('open', () => {
@@ -431,4 +431,5 @@ function capitalizeFirst(str) {
 window.addEventListener('beforeunload', () => {
     cleanupConnection();
 });
+
 
