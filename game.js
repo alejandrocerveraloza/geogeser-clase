@@ -96,12 +96,17 @@ function createRoom() {
         }
     });
 
-    peer.on('open', (id) => {
-        console.log('Sala creada:', id);
-        document.getElementById('roomCode').textContent = id;
-        document.getElementById('roomCodeDisplay').style.display = 'block';
-        document.getElementById('startCreatingBtn').disabled = true;
-    });
+peer.on('open', (id) => {
+    console.log('ID real de la sala:', id);
+
+    // mostramos el ID real
+    roomCode = id;
+    document.getElementById('roomCode').textContent = id;
+
+    document.getElementById('roomCodeDisplay').style.display = 'block';
+    document.getElementById('startCreatingBtn').disabled = true;
+});
+
 
     peer.on('connection', (conn) => {
         connection = conn;
@@ -431,5 +436,6 @@ function capitalizeFirst(str) {
 window.addEventListener('beforeunload', () => {
     cleanupConnection();
 });
+
 
 
