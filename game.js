@@ -80,13 +80,12 @@ function showResultsScreen() {
 // ==========================================
 // CREACIÓN DE SALA (HOST)
 // ==========================================
-
 function createRoom() {
     isHost = true;
+
     gameConfig.locationFilter = document.getElementById('locationFilter').value;
     gameConfig.numRounds = parseInt(document.getElementById('numRounds').value);
-    roomCode = Math.floor(1000 + Math.random() * 9000).toString();
-    
+
     peer = new Peer({
         config: {
             iceServers: [
@@ -96,23 +95,21 @@ function createRoom() {
         }
     });
 
-peer.on('open', (id) => {
-    console.log('ID real de la sala:', id);
+    peer.on('open', (id) => {
+        console.log('ID real de la sala:', id);
 
-    // mostramos el ID real
-    roomCode = id;
-    document.getElementById('roomCode').textContent = id;
+        roomCode = id;
 
-    document.getElementById('roomCodeDisplay').style.display = 'block';
-    document.getElementById('startCreatingBtn').disabled = true;
-});
-
+        document.getElementById('roomCode').textContent = id;
+        document.getElementById('roomCodeDisplay').style.display = 'block';
+        document.getElementById('startCreatingBtn').disabled = true;
+    });
 
     peer.on('connection', (conn) => {
         connection = conn;
         console.log('Jugador conectado');
         setupConnection();
-        
+
         setTimeout(() => {
             sendMessage({ type: 'gameConfig', config: gameConfig });
             setTimeout(() => startGame(), 1000);
@@ -124,6 +121,7 @@ peer.on('open', (id) => {
         alert('Error al crear la sala. Intenta de nuevo.');
     });
 }
+
 
 // ==========================================
 // UNIRSE A SALA (GUEST)
@@ -436,6 +434,7 @@ function capitalizeFirst(str) {
 window.addEventListener('beforeunload', () => {
     cleanupConnection();
 });
+
 
 
 
